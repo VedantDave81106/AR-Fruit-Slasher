@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>AR 3D Fruit Slasher - Interactive Web Simulator</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Three.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+  <!-- 3D Canvas Container -->
+  <div id="game-container">
+    <canvas id="three-canvas"></canvas>
+    <canvas id="blade-canvas"></canvas>
+  </div>
+
+  <!-- HUD Overlay -->
+  <div id="hud">
+    <div class="hud-top">
+      <div class="stat-card" id="score-box">
+        <span class="label">SCORE</span>
+        <span class="value" id="score-display">0</span>
+      </div>
+      <div class="stat-card" id="tier-box">
+        <span class="label">SPAWN ARC</span>
+        <span class="value" id="arc-display">100° (Front)</span>
+      </div>
+      <div class="stat-card" id="lives-box">
+        <span class="label">LIVES</span>
+        <span class="value" id="lives-display">❤️❤️❤️</span>
+      </div>
+    </div>
+
+    <!-- Look Around Instructions for Simulator -->
+    <div id="controls-hint">
+      <span>🖱️ <b>Left Click & Drag:</b> Slice Blade</span>
+      <span>🔄 <b>Right Click & Drag / A-D Keys:</b> Look Around (360° AR)</span>
+    </div>
+
+    <!-- Directional Warning Radar Alert -->
+    <div id="rear-alert" class="hidden">
+      <div class="alert-icon">⚠️</div>
+      <div class="alert-content">
+        <div id="alert-title">BEHIND YOU!</div>
+        <div id="alert-arrow">TURN AROUND 🔄</div>
+      </div>
+    </div>
+
+    <!-- Floating Combo Banner -->
+    <div id="combo-banner" class="hidden">
+      <div id="combo-title">TRIPLE COMBO!</div>
+      <div id="combo-points">+45 PTS</div>
+    </div>
+
+    <!-- Checkpoint Banner -->
+    <div id="checkpoint-banner" class="hidden">
+      <div id="checkpoint-title">🔥 CHECKPOINT REACHED! 🔥</div>
+      <div id="checkpoint-sub">180° ARC UNLOCKED</div>
+    </div>
+
+    <!-- Floating 3D score texts container -->
+    <div id="score-popups"></div>
+  </div>
+
+  <!-- Game Over Screen -->
+  <div id="game-over-modal" class="hidden">
+    <div class="modal-card">
+      <h1 class="game-over-title">GAME OVER</h1>
+      <p id="game-over-reason">Out of Lives!</p>
+      <div class="final-score-box">
+        <div>FINAL SCORE: <b id="final-score">0</b></div>
+        <div>BEST SCORE: <b id="best-score">0</b></div>
+      </div>
+      <button id="restart-btn" class="glow-button">PLAY AGAIN</button>
+      <div class="unity-note">
+        💡 <b>Unity AR Project Ready:</b> This game logic is mirrored in the C# Unity project files in this repository for ARCore Android APK export!
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
