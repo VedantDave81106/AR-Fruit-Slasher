@@ -21,6 +21,7 @@ namespace ARFruitSlasher.Core
             EnsureManager<ARWarningIndicator>("ARWarningIndicator");
             EnsureManager<FruitSpawner>("FruitSpawner");
             EnsureManager<ARFaceScanManager>("ARFaceScanManager");
+            EnsureManager<ARCameraHandTracker>("ARCameraHandTracker");
 
             // Ensure BladeController is on Camera or blade object
             Camera cam = Camera.main;

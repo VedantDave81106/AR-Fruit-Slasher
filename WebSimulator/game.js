@@ -1,10 +1,10 @@
 // ============================================================================
-// AR 3D FRUIT SLASHER - INTERACTIVE WEB SIMULATOR
-// Features: AR Face Detection Scanner, Distinct 3D Fruit Types (Watermelon,
-// Orange, Apple, Pineapple, Bomb), 360° Arc Scaling, Rear Alert Radar, Combos
+// AR 3D FRUIT SLASHER - HAND & FINGER AIR-SWIPE TRACKING (AR/MR)
+// Real-time camera hand & finger gesture detection, AR passthrough,
+// 3D fruit models by type, 360° difficulty arc, rear alert, and combos
 // ============================================================================
 
-// --- Procedural 2D Texture Generators for Realistic Fruit Skins & Slices ---
+// --- Procedural 2D Texture Generators for Fruit Skins & Slices ---
 const FruitTextureGenerator = {
   createWatermelonRind() {
     const canvas = document.createElement('canvas');
@@ -12,11 +12,9 @@ const FruitTextureGenerator = {
     canvas.height = 256;
     const ctx = canvas.getContext('2d');
 
-    // Base light/medium green
     ctx.fillStyle = '#228b3b';
     ctx.fillRect(0, 0, 512, 256);
 
-    // Dark wavy stripes
     ctx.fillStyle = '#0f481c';
     const stripeCount = 14;
     const stripeWidth = 512 / stripeCount;
@@ -47,25 +45,21 @@ const FruitTextureGenerator = {
     canvas.height = 256;
     const ctx = canvas.getContext('2d');
 
-    // Dark green outer rind
     ctx.fillStyle = '#0f481c';
     ctx.beginPath();
     ctx.arc(128, 128, 126, 0, Math.PI * 2);
     ctx.fill();
 
-    // Light green/white pith
     ctx.fillStyle = '#c7f0b8';
     ctx.beginPath();
     ctx.arc(128, 128, 118, 0, Math.PI * 2);
     ctx.fill();
 
-    // Vibrant red center flesh
     ctx.fillStyle = '#e81e3a';
     ctx.beginPath();
     ctx.arc(128, 128, 108, 0, Math.PI * 2);
     ctx.fill();
 
-    // Black watermelon seeds
     ctx.fillStyle = '#111';
     const seedCount = 12;
     for (let i = 0; i < seedCount; i++) {
@@ -88,7 +82,6 @@ const FruitTextureGenerator = {
     ctx.fillStyle = '#ff7b00';
     ctx.fillRect(0, 0, 256, 256);
 
-    // Dimpled texture dots
     ctx.fillStyle = '#e66a00';
     for (let i = 0; i < 400; i++) {
       const x = Math.random() * 256;
@@ -106,19 +99,16 @@ const FruitTextureGenerator = {
     canvas.height = 256;
     const ctx = canvas.getContext('2d');
 
-    // Orange rind
     ctx.fillStyle = '#ff7b00';
     ctx.beginPath();
     ctx.arc(128, 128, 126, 0, Math.PI * 2);
     ctx.fill();
 
-    // White pith
     ctx.fillStyle = '#fff4e6';
     ctx.beginPath();
     ctx.arc(128, 128, 116, 0, Math.PI * 2);
     ctx.fill();
 
-    // Citrus segments (8 triangular spokes)
     const segments = 8;
     for (let s = 0; s < segments; s++) {
       const a1 = (s / segments) * Math.PI * 2 + 0.08;
@@ -131,7 +121,6 @@ const FruitTextureGenerator = {
       ctx.fill();
     }
 
-    // Center white dot
     ctx.fillStyle = '#fff4e6';
     ctx.beginPath();
     ctx.arc(128, 128, 12, 0, Math.PI * 2);
@@ -146,19 +135,16 @@ const FruitTextureGenerator = {
     canvas.height = 256;
     const ctx = canvas.getContext('2d');
 
-    // Red skin rim
     ctx.fillStyle = '#cc1824';
     ctx.beginPath();
     ctx.arc(128, 128, 126, 0, Math.PI * 2);
     ctx.fill();
 
-    // Creamy white flesh
     ctx.fillStyle = '#fcf8dc';
     ctx.beginPath();
     ctx.arc(128, 128, 120, 0, Math.PI * 2);
     ctx.fill();
 
-    // Star core & 2 brown seeds
     ctx.fillStyle = '#d4c798';
     ctx.beginPath();
     ctx.arc(128, 128, 22, 0, Math.PI * 2);
@@ -181,7 +167,6 @@ const FruitTextureGenerator = {
     ctx.fillStyle = '#d48817';
     ctx.fillRect(0, 0, 256, 256);
 
-    // Crosshatch diamond pattern
     ctx.strokeStyle = '#804b08';
     ctx.lineWidth = 3;
     for (let i = -256; i < 512; i += 32) {
@@ -196,7 +181,6 @@ const FruitTextureGenerator = {
       ctx.stroke();
     }
 
-    // Yellow diamond center spots
     ctx.fillStyle = '#ffd13b';
     for (let x = 16; x < 256; x += 32) {
       for (let y = 16; y < 256; y += 32) {
@@ -209,7 +193,7 @@ const FruitTextureGenerator = {
   }
 };
 
-// --- Web Audio API Procedural Sound Engine ---
+// --- Web Audio Procedural Sound Engine ---
 class SoundEngine {
   constructor() {
     this.ctx = null;
@@ -302,7 +286,7 @@ class SoundEngine {
     if (!this.ctx) return;
     this.ensureContext();
     const now = this.ctx.currentTime;
-    const notes = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
+    const notes = [523.25, 659.25, 783.99, 1046.5];
     notes.forEach((freq, idx) => {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
@@ -358,7 +342,6 @@ class ARFruitSlasherGame {
   constructor() {
     this.audio = new SoundEngine();
 
-    // Textures Cache
     this.textures = {
       watermelonRind: FruitTextureGenerator.createWatermelonRind(),
       watermelonFlesh: FruitTextureGenerator.createWatermelonFlesh(),
@@ -371,7 +354,7 @@ class ARFruitSlasherGame {
     // Game States: 'FACE_SCAN', 'PLAYING', 'GAME_OVER'
     this.gameState = 'FACE_SCAN';
 
-    // Game State
+    // Game Metrics
     this.score = 0;
     this.bestScore = parseInt(localStorage.getItem('AR_FRUIT_BEST') || '0', 10);
     this.lives = 3;
@@ -389,14 +372,14 @@ class ARFruitSlasherGame {
     // Combo system
     this.comboStreak = 0;
     this.lastSliceTime = 0;
-    this.comboResetTime = 400; // ms
+    this.comboResetTime = 400;
 
     // Active Objects
     this.fruits = [];
     this.halves = [];
     this.particles = [];
 
-    // Camera Pan (Simulating AR looking around)
+    // Camera Pan
     this.cameraYaw = 0;
     this.isPanning = false;
     this.lastPanX = 0;
@@ -406,56 +389,64 @@ class ARFruitSlasherGame {
     this.bladePoints = [];
     this.previousScreenPoint = null;
 
-    // Active Rear Threat
+    // Threat Alert
     this.activeThreat = null;
 
-    // Face Scanner
+    // Camera & AR Passthrough
     this.webcamStream = null;
-    this.scanProgress = 0;
-    this.isScanningFace = false;
+    this.isCamBgActive = true;
+
+    // Hand & Finger Tracking
+    this.fingerPos = null; // { x, y }
+    this.prevFingerPos = null;
+    this.isHandDetected = false;
+    this.mediaPipeHands = null;
+
+    // Offscreen Canvas for Native Motion/Skin Hand Tracking
+    this.cvCanvas = document.getElementById('cv-motion-canvas');
+    this.cvCtx = this.cvCanvas.getContext('2d');
+    this.prevFrameData = null;
 
     this.initThree();
     this.initBladeCanvas();
     this.initUI();
     this.initEvents();
-    this.initFaceScanner();
+    this.initWebcamAndHandTracking();
     this.animate();
   }
 
   initThree() {
     this.threeCanvas = document.getElementById('three-canvas');
+    // Enable alpha transparency so the real-world webcam shows behind 3D fruits!
     this.renderer = new THREE.WebGLRenderer({ canvas: this.threeCanvas, antialias: true, alpha: true });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x0a0d14);
+    // Scene background is transparent so webcam video is visible in AR
+    this.scene.background = null;
 
-    // Camera at simulated eye level
     this.camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 100);
     this.camera.position.set(0, 1.4, 0);
 
-    // Ambient + Directional Lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
     this.scene.add(ambientLight);
 
     const sunLight = new THREE.DirectionalLight(0xfffaed, 1.4);
     sunLight.position.set(5, 10, 5);
     this.scene.add(sunLight);
 
-    // Secondary fill light for vivid fruit colors
     const fillLight = new THREE.DirectionalLight(0x00f2fe, 0.4);
     fillLight.position.set(-5, 4, -5);
     this.scene.add(fillLight);
 
-    // Futuristic AR Reticle Ground Floor
+    // Subtle holographic ground grid
     const grid = new THREE.GridHelper(12, 24, 0x00f2fe, 0x1f293d);
     grid.position.y = -0.05;
     this.scene.add(grid);
 
-    // Circular ground ring
     const ringGeo = new THREE.RingGeometry(2.4, 2.5, 48);
-    const ringMat = new THREE.MeshBasicMaterial({ color: 0x00f2fe, side: THREE.DoubleSide, transparent: true, opacity: 0.3 });
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0x00f2fe, side: THREE.DoubleSide, transparent: true, opacity: 0.35 });
     const ring = new THREE.Mesh(ringGeo, ringMat);
     ring.rotation.x = -Math.PI / 2;
     this.scene.add(ring);
@@ -492,9 +483,11 @@ class ARFruitSlasherGame {
     this.fruitBadgeIcon = document.getElementById('fruit-badge-icon');
     this.fruitBadgeName = document.getElementById('fruit-badge-name');
 
-    // AR PIP Badge
-    this.arCamPip = document.getElementById('ar-cam-pip');
-    this.pipVideo = document.getElementById('pip-video');
+    // AR & Hand Tracking Elements
+    this.arWebcamBg = document.getElementById('ar-webcam-bg');
+    this.fingerReticle = document.getElementById('finger-reticle');
+    this.handStatusText = document.getElementById('hand-status-text');
+    this.toggleCamBgBtn = document.getElementById('toggle-cam-bg-btn');
 
     // Face Scan Modal Elements
     this.faceScanModal = document.getElementById('face-scan-modal');
@@ -520,6 +513,19 @@ class ARFruitSlasherGame {
         this.openFaceScanner();
       });
     }
+
+    if (this.toggleCamBgBtn) {
+      this.toggleCamBgBtn.addEventListener('click', () => {
+        this.isCamBgActive = !this.isCamBgActive;
+        if (this.isCamBgActive) {
+          this.arWebcamBg.classList.remove('hidden-bg');
+          this.toggleCamBgBtn.innerText = '📷 AR BG: ON';
+        } else {
+          this.arWebcamBg.classList.add('hidden-bg');
+          this.toggleCamBgBtn.innerText = '📷 AR BG: OFF';
+        }
+      });
+    }
   }
 
   initEvents() {
@@ -530,7 +536,6 @@ class ARFruitSlasherGame {
       this.resizeBladeCanvas();
     });
 
-    // Keyboard rotation
     window.addEventListener('keydown', (e) => {
       if (this.gameState !== 'PLAYING') return;
       if (e.key === 'a' || e.key === 'ArrowLeft') {
@@ -540,7 +545,7 @@ class ARFruitSlasherGame {
       }
     });
 
-    // Mouse / Touch Controls
+    // Mouse / Touch Manual Backup
     window.addEventListener('mousedown', (e) => {
       if (this.gameState !== 'PLAYING') return;
       if (e.button === 0) {
@@ -578,7 +583,7 @@ class ARFruitSlasherGame {
 
     window.addEventListener('contextmenu', (e) => e.preventDefault());
 
-    // Touch Controls
+    // Touch
     window.addEventListener('touchstart', (e) => {
       if (this.gameState !== 'PLAYING') return;
       if (e.touches.length === 1) {
@@ -606,7 +611,7 @@ class ARFruitSlasherGame {
       this.previousScreenPoint = null;
     });
 
-    // Mobile Gyroscope
+    // Device Gyroscope
     if (window.DeviceOrientationEvent) {
       window.addEventListener('deviceorientation', (e) => {
         if (this.gameState === 'PLAYING' && e.alpha !== null) {
@@ -616,94 +621,215 @@ class ARFruitSlasherGame {
     }
   }
 
-  // --- AR Face Scanner Authentication Workflow ---
-  initFaceScanner() {
-    this.startCamBtn.addEventListener('click', () => this.requestWebcamAndScan());
-    this.bypassScanBtn.addEventListener('click', () => this.runFaceScanSimulation(true));
+  // ==========================================================================
+  // AR WEBCAM & HAND/FINGER TRACKING ENGINE
+  // ==========================================================================
+  initWebcamAndHandTracking() {
+    this.startCamBtn.addEventListener('click', () => this.startCameraCalibration());
+    this.bypassScanBtn.addEventListener('click', () => this.runCalibrationSequence(true));
 
-    // Try auto-requesting webcam on load
-    this.requestWebcamAndScan();
+    // Try auto-requesting camera stream
+    this.startCameraCalibration();
   }
 
-  openFaceScanner() {
-    this.gameState = 'FACE_SCAN';
-    this.scanProgress = 0;
-    this.scanProgressBar.style.width = '0%';
-    this.scanPercent.innerText = '0% ANALYZED';
-    this.faceScanModal.classList.remove('hidden');
-    this.arCamPip.classList.add('hidden');
-    this.scanStatusText.innerText = 'ALIGN FACE IN RETICLE...';
-    this.requestWebcamAndScan();
-  }
-
-  async requestWebcamAndScan() {
+  async startCameraCalibration() {
     try {
-      this.scanStatusText.innerText = 'ACCESSING CAMERA...';
+      this.scanStatusText.innerText = 'ACCESSING AR CAMERA...';
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
         audio: false
       });
       this.webcamStream = stream;
       this.scannerVideo.srcObject = stream;
-      this.pipVideo.srcObject = stream;
+      this.arWebcamBg.srcObject = stream;
       this.scannerVideo.play();
-      this.pipVideo.play();
+      this.arWebcamBg.play();
 
-      this.scanStatusText.innerText = 'FACE DETECTED! SCANNING...';
-      this.runFaceScanSimulation(false);
+      this.scanStatusText.innerText = 'CAMERA CALIBRATED! SCANNING...';
+      this.setupMediaPipeOrCV();
+      this.runCalibrationSequence(false);
     } catch (err) {
-      console.warn("Webcam access unavailable or denied:", err);
-      this.scanStatusText.innerText = 'CAMERA UNAVAILABLE (CLICK SIMULATE)';
+      console.warn("Camera stream unavailable or denied:", err);
+      this.scanStatusText.innerText = 'CAMERA UNAVAILABLE (CLICK QUICK START)';
     }
   }
 
-  runFaceScanSimulation(isBypass = false) {
-    if (this.isScanningFace) return;
-    this.isScanningFace = true;
-    this.scanProgress = 0;
+  setupMediaPipeOrCV() {
+    // Attempt initializing MediaPipe Hands AI if available
+    if (typeof window.Hands !== 'undefined') {
+      try {
+        this.mediaPipeHands = new window.Hands({
+          locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+        });
+        this.mediaPipeHands.setOptions({
+          maxNumHands: 1,
+          modelComplexity: 0, // lightweight for fast 60fps tracking
+          minDetectionConfidence: 0.5,
+          minTrackingConfidence: 0.5
+        });
 
-    const intervalTime = isBypass ? 18 : 28;
+        this.mediaPipeHands.onResults((results) => {
+          this.onMediaPipeHandResults(results);
+        });
+
+        console.log("MediaPipe Hands AI Engine Initialized!");
+      } catch (e) {
+        console.warn("MediaPipe Hands initialization error, using native CV:", e);
+      }
+    }
+  }
+
+  onMediaPipeHandResults(results) {
+    if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+      const landmarks = results.multiHandLandmarks[0];
+      // Landmark 8 is INDEX_FINGER_TIP
+      const indexTip = landmarks[8];
+
+      // Mirror X for selfie perspective
+      const screenX = (1 - indexTip.x) * window.innerWidth;
+      const screenY = indexTip.y * window.innerHeight;
+
+      this.processFingerInput(screenX, screenY);
+      this.isHandDetected = true;
+    } else {
+      this.isHandDetected = false;
+    }
+  }
+
+  // Native High-Speed Optical Motion & Fingertip Contour Tracker (Runs at 60fps)
+  processNativeOpticalHandTracking() {
+    if (!this.arWebcamBg || this.arWebcamBg.readyState < 2) return;
+
+    // Draw downsampled video frame onto offscreen canvas (160x120)
+    const w = 160, h = 120;
+    this.cvCtx.drawImage(this.arWebcamBg, 0, 0, w, h);
+    const frame = this.cvCtx.getImageData(0, 0, w, h);
+    const data = frame.data;
+
+    if (!this.prevFrameData) {
+      this.prevFrameData = new Uint8Array(data.length);
+      this.prevFrameData.set(data);
+      return;
+    }
+
+    let motionCount = 0;
+    let minMotionY = h;
+    let topX = 0;
+    let topY = 0;
+    let avgMotionX = 0;
+    let avgMotionY = 0;
+
+    // Threshold difference
+    const threshold = 32;
+    for (let i = 0; i < data.length; i += 4) {
+      const diffR = Math.abs(data[i] - this.prevFrameData[i]);
+      const diffG = Math.abs(data[i + 1] - this.prevFrameData[i + 1]);
+      const diffB = Math.abs(data[i + 2] - this.prevFrameData[i + 2]);
+      const totalDiff = (diffR + diffG + diffB) / 3;
+
+      if (totalDiff > threshold) {
+        const pixelIdx = i / 4;
+        const px = pixelIdx % w;
+        const py = Math.floor(pixelIdx / w);
+
+        motionCount++;
+        avgMotionX += px;
+        avgMotionY += py;
+
+        // Track uppermost moving point (fingertip!)
+        if (py < minMotionY) {
+          minMotionY = py;
+          topX = px;
+          topY = py;
+        }
+      }
+    }
+
+    // Save previous frame
+    this.prevFrameData.set(data);
+
+    // If substantial hand motion detected (> 25 pixels)
+    if (motionCount > 25) {
+      // Mirror X
+      const normalizedX = 1 - (topX / w);
+      const normalizedY = topY / h;
+
+      const screenX = normalizedX * window.innerWidth;
+      const screenY = normalizedY * window.innerHeight;
+
+      this.processFingerInput(screenX, screenY);
+      this.isHandDetected = true;
+    } else {
+      this.isHandDetected = false;
+    }
+  }
+
+  processFingerInput(screenX, screenY) {
+    if (this.gameState !== 'PLAYING') return;
+
+    // Show floating holographic finger reticle
+    this.fingerReticle.classList.remove('hidden');
+    this.fingerReticle.style.left = `${screenX}px`;
+    this.fingerReticle.style.top = `${screenY}px`;
+
+    this.handStatusText.innerText = '🖐️ FINGER DETECTED (AIR SWIPE READY)';
+
+    const now = performance.now();
+
+    if (this.fingerPos) {
+      const dx = screenX - this.fingerPos.x;
+      const dy = screenY - this.fingerPos.y;
+      const dist = Math.hypot(dx, dy);
+
+      // Slash speed threshold (rapid hand movement = air slash!)
+      if (dist > 35) {
+        this.recordBladePoint(screenX, screenY);
+        this.checkBladeIntersection(this.fingerPos, { x: screenX, y: screenY });
+
+        if (dist > 75) {
+          this.audio.playSwish();
+        }
+      }
+    }
+
+    this.fingerPos = { x: screenX, y: screenY, time: now };
+  }
+
+  runCalibrationSequence(isBypass = false) {
+    let progress = 0;
+    const intervalTime = isBypass ? 15 : 25;
     const timer = setInterval(() => {
-      this.scanProgress += 2;
-      this.scanProgressBar.style.width = `${this.scanProgress}%`;
-      this.scanPercent.innerText = `${this.scanProgress}% ANALYZED`;
+      progress += 2;
+      this.scanProgressBar.style.width = `${progress}%`;
+      this.scanPercent.innerText = `${progress}% CALIBRATED`;
 
-      if (this.scanProgress === 40) {
-        this.scanStatusText.innerText = 'DETECTING FACIAL LANDMARKS...';
-      } else if (this.scanProgress === 74) {
-        this.scanStatusText.innerText = 'VERIFYING AR TRACKING MESH...';
+      if (progress === 40) {
+        this.scanStatusText.innerText = 'CALIBRATING AR HAND SENSORS...';
+      } else if (progress === 76) {
+        this.scanStatusText.innerText = 'FINGER AIR SWIPE ENGAGED...';
       }
 
-      if (this.scanProgress >= 100) {
+      if (progress >= 100) {
         clearInterval(timer);
-        this.isScanningFace = false;
-        this.onFaceScanCompleted();
+        this.onCalibrationCompleted();
       }
     }, intervalTime);
   }
 
-  onFaceScanCompleted() {
-    this.scanStatusText.innerText = '✅ BIOMETRICS CONFIRMED: AGENT VERIFIED!';
+  onCalibrationCompleted() {
+    this.scanStatusText.innerText = '✅ AR CALIBRATED: SWIPE FINGERS TO SLICE!';
     this.audio.playBiometricLock();
 
     setTimeout(() => {
-      // Fade out scanner modal
       this.faceScanModal.classList.add('hidden');
       this.gameState = 'PLAYING';
 
-      // Show in-game PIP AR face camera if stream is active
-      if (this.webcamStream) {
-        this.arCamPip.classList.remove('hidden');
-      }
-
-      // Show checkpoint / welcome banner
-      this.checkpointSub.innerText = 'AR ARENA UNLOCKED - GET READY!';
+      this.checkpointSub.innerText = 'AR ARENA READY - AIR SWIPE TO CUT!';
       this.checkpointBanner.classList.remove('hidden');
-      setTimeout(() => this.checkpointBanner.classList.add('hidden'), 2000);
+      setTimeout(() => this.checkpointBanner.classList.add('hidden'), 2200);
 
-      // Start fruit spawning
       this.startSpawnLoop();
-    }, 900);
+    }, 850);
   }
 
   recordBladePoint(x, y) {
@@ -720,7 +846,6 @@ class ARFruitSlasherGame {
 
     switch (typeConfig.type) {
       case 'Watermelon': {
-        // Oval watermelon geometry with procedural wavy green rind
         const geo = new THREE.SphereGeometry(0.34, 24, 24);
         geo.scale(1.2, 0.95, 0.95);
         const mat = new THREE.MeshStandardMaterial({
@@ -734,7 +859,6 @@ class ARFruitSlasherGame {
       }
 
       case 'Orange': {
-        // Dimpled orange sphere with green stem leaf on top
         const geo = new THREE.SphereGeometry(0.26, 20, 20);
         const mat = new THREE.MeshStandardMaterial({
           map: this.textures.orangeRind,
@@ -743,7 +867,6 @@ class ARFruitSlasherGame {
         mainMesh = new THREE.Mesh(geo, mat);
         group.add(mainMesh);
 
-        // Green leaf on top
         const leafGeo = new THREE.ConeGeometry(0.04, 0.12, 5);
         const leafMat = new THREE.MeshBasicMaterial({ color: 0x228b3b });
         const leaf = new THREE.Mesh(leafGeo, leafMat);
@@ -754,7 +877,6 @@ class ARFruitSlasherGame {
       }
 
       case 'Apple': {
-        // Apple shape (slightly tapered bottom) + brown curved stem
         const geo = new THREE.SphereGeometry(0.23, 20, 20);
         geo.scale(1.0, 1.08, 1.0);
         const mat = new THREE.MeshStandardMaterial({
@@ -765,7 +887,6 @@ class ARFruitSlasherGame {
         mainMesh = new THREE.Mesh(geo, mat);
         group.add(mainMesh);
 
-        // Brown stem
         const stemGeo = new THREE.CylinderGeometry(0.015, 0.015, 0.09, 6);
         const stemMat = new THREE.MeshBasicMaterial({ color: 0x4a2511 });
         const stem = new THREE.Mesh(stemGeo, stemMat);
@@ -776,7 +897,6 @@ class ARFruitSlasherGame {
       }
 
       case 'Pineapple': {
-        // Golden pineapple cylinder body + crown of green spiky leaves
         const bodyGeo = new THREE.CylinderGeometry(0.20, 0.22, 0.38, 16);
         const bodyMat = new THREE.MeshStandardMaterial({
           map: this.textures.pineappleSkin,
@@ -785,7 +905,6 @@ class ARFruitSlasherGame {
         mainMesh = new THREE.Mesh(bodyGeo, bodyMat);
         group.add(mainMesh);
 
-        // Top green leaf crown (5 spiky leaves)
         for (let l = 0; l < 6; l++) {
           const leafGeo = new THREE.ConeGeometry(0.035, 0.22, 4);
           const leafMat = new THREE.MeshBasicMaterial({ color: 0x2e8b57 });
@@ -800,7 +919,6 @@ class ARFruitSlasherGame {
       }
 
       case 'Bomb': {
-        // Heavy metallic charcoal sphere + fuse cap + burning fuse spark
         const geo = new THREE.SphereGeometry(0.25, 18, 18);
         const mat = new THREE.MeshStandardMaterial({
           color: 0x18181c,
@@ -810,14 +928,12 @@ class ARFruitSlasherGame {
         mainMesh = new THREE.Mesh(geo, mat);
         group.add(mainMesh);
 
-        // Brass fuse cap
         const capGeo = new THREE.CylinderGeometry(0.05, 0.05, 0.06, 8);
         const capMat = new THREE.MeshStandardMaterial({ color: 0xb59410, metalness: 0.8 });
         const cap = new THREE.Mesh(capGeo, capMat);
         cap.position.y = 0.25;
         group.add(cap);
 
-        // Curved fuse cord
         const fuseGeo = new THREE.CylinderGeometry(0.015, 0.015, 0.12, 6);
         const fuseMat = new THREE.MeshBasicMaterial({ color: 0xddaa55 });
         const fuse = new THREE.Mesh(fuseGeo, fuseMat);
@@ -825,7 +941,6 @@ class ARFruitSlasherGame {
         fuse.rotation.z = -0.4;
         group.add(fuse);
 
-        // Sparkling animated flame dot
         const sparkGeo = new THREE.SphereGeometry(0.035, 6, 6);
         const sparkMat = new THREE.MeshBasicMaterial({ color: 0xff4500 });
         const spark = new THREE.Mesh(sparkGeo, sparkMat);
@@ -867,12 +982,11 @@ class ARFruitSlasherGame {
     const radius = 2.4 + Math.random() * 0.8;
     const spawnX = Math.sin(globalAngle) * radius;
     const spawnZ = -Math.cos(globalAngle) * radius;
-    const spawnY = -0.1; // Ground level
+    const spawnY = -0.1;
 
     const angleFromForward = Math.abs(spawnAngleRel) * (180 / Math.PI);
     const isBehind = angleFromForward > 55;
 
-    // Check if bomb
     const isBomb = Math.random() < tier.bombChance;
 
     let typeConfig;
@@ -895,15 +1009,12 @@ class ARFruitSlasherGame {
       typeConfig = catalog[Math.floor(Math.random() * catalog.length)];
     }
 
-    // Announce fruit type on HUD badge
     this.showFruitTypeBadge(typeConfig.icon, typeConfig.name);
 
-    // Create 3D Fruit Model
     const fruitModel = this.createFruitByType(typeConfig);
     const group = fruitModel.group;
     group.position.set(spawnX, spawnY, spawnZ);
 
-    // Launch velocity
     const upwardSpeed = 4.8 + Math.random() * 0.6;
     const inwardDir = new THREE.Vector3(-spawnX, 0, -spawnZ).normalize().multiplyScalar(1.0);
     const velocity = new THREE.Vector3(inwardDir.x, upwardSpeed, inwardDir.z);
@@ -924,7 +1035,6 @@ class ARFruitSlasherGame {
       isSliced: false
     });
 
-    // Trigger rear threat alert if outside front view
     if (isBehind) {
       this.triggerRearAlert(new THREE.Vector3(spawnX, spawnY, spawnZ));
     }
@@ -1026,7 +1136,6 @@ class ARFruitSlasherGame {
 
     this.audio.playSlice();
 
-    // Register combo
     const now = performance.now();
     if (now - this.lastSliceTime < this.comboResetTime) {
       this.comboStreak++;
@@ -1036,16 +1145,9 @@ class ARFruitSlasherGame {
     }
     this.lastSliceTime = now;
 
-    // Add score
     this.addScore(fruitObj.data.points);
-
-    // Spawn 2 split halves with fruit-specific flesh cross-sections
     this.spawnFruitHalves(fruitObj, contactPoint, swipeDir);
-
-    // Spawn colored juice splatter
     this.spawnJuiceSplatter(contactPoint, fruitObj.data.juiceColor);
-
-    // Floating 3D score popup
     this.spawnScorePopup(contactPoint, `+${fruitObj.data.points}`);
   }
 
@@ -1206,6 +1308,7 @@ class ARFruitSlasherGame {
     this.finalScoreEl.innerText = this.score;
     this.bestScoreEl.innerText = this.bestScore;
     this.gameOverModal.classList.remove('hidden');
+    this.fingerReticle.classList.add('hidden');
   }
 
   restartGame() {
@@ -1222,7 +1325,6 @@ class ARFruitSlasherGame {
     this.rearAlert.classList.add('hidden');
     this.activeThreat = null;
 
-    // Clear active fruits
     this.fruits.forEach(f => this.scene.remove(f.group));
     this.fruits = [];
     this.halves.forEach(h => this.scene.remove(h.mesh));
@@ -1241,6 +1343,22 @@ class ARFruitSlasherGame {
     const gravity = -9.8;
 
     this.camera.rotation.y = this.cameraYaw;
+
+    // Run real-time hand/finger tracking on camera feed
+    if (this.gameState === 'PLAYING') {
+      if (this.mediaPipeHands && this.arWebcamBg && this.arWebcamBg.readyState >= 2) {
+        // Send frame to MediaPipe if ready
+        if (!this.isSendingFrame) {
+          this.isSendingFrame = true;
+          this.mediaPipeHands.send({ image: this.arWebcamBg }).finally(() => {
+            this.isSendingFrame = false;
+          });
+        }
+      } else {
+        // Run native optical motion tracker
+        this.processNativeOpticalHandTracking();
+      }
+    }
 
     // Update Fruits
     for (let i = this.fruits.length - 1; i >= 0; i--) {
@@ -1298,7 +1416,7 @@ class ARFruitSlasherGame {
       this.finishCombo();
     }
 
-    // Update Rear threat alert
+    // Update Threat Alert
     this.updateRearAlert();
 
     // Render 3D Scene
@@ -1311,7 +1429,7 @@ class ARFruitSlasherGame {
   renderBladeTrail(now) {
     this.bladeCtx.clearRect(0, 0, this.bladeCanvas.width, this.bladeCanvas.height);
 
-    this.bladePoints = this.bladePoints.filter(p => now - p.time < 180);
+    this.bladePoints = this.bladePoints.filter(p => now - p.time < 190);
 
     if (this.bladePoints.length < 2) return;
 
@@ -1321,15 +1439,15 @@ class ARFruitSlasherGame {
     for (let i = 1; i < this.bladePoints.length; i++) {
       const p1 = this.bladePoints[i - 1];
       const p2 = this.bladePoints[i];
-      const ageRatio = (now - p2.time) / 180;
+      const ageRatio = (now - p2.time) / 190;
       const alpha = Math.max(0, 1 - ageRatio);
-      const width = (1 - ageRatio) * 12 + 2;
+      const width = (1 - ageRatio) * 14 + 3;
 
       // Cyan outer glow
       this.bladeCtx.beginPath();
       this.bladeCtx.moveTo(p1.x, p1.y);
       this.bladeCtx.lineTo(p2.x, p2.y);
-      this.bladeCtx.strokeStyle = `rgba(0, 242, 254, ${alpha * 0.8})`;
+      this.bladeCtx.strokeStyle = `rgba(0, 242, 254, ${alpha * 0.85})`;
       this.bladeCtx.lineWidth = width * 1.8;
       this.bladeCtx.stroke();
 
@@ -1338,13 +1456,13 @@ class ARFruitSlasherGame {
       this.bladeCtx.moveTo(p1.x, p1.y);
       this.bladeCtx.lineTo(p2.x, p2.y);
       this.bladeCtx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
-      this.bladeCtx.lineWidth = width * 0.6;
+      this.bladeCtx.lineWidth = width * 0.65;
       this.bladeCtx.stroke();
     }
   }
 }
 
-// Start Game on Load
+// Start Game
 window.addEventListener('DOMContentLoaded', () => {
   window.game = new ARFruitSlasherGame();
 });

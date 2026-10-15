@@ -3,28 +3,29 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>AR 3D Fruit Slasher - Interactive Web Simulator</title>
+  <title>AR 3D Fruit Slasher - Hand & Finger Tracking AR/MR</title>
   <link rel="stylesheet" href="style.css" />
   <!-- Three.js CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- MediaPipe Hands & Camera Utils for AI Hand/Finger Detection -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 </head>
 <body>
+  <!-- Fullscreen AR Webcam Passthrough (See your real room behind 3D fruits!) -->
+  <video id="ar-webcam-bg" autoplay playsinline muted></video>
+
   <!-- 3D Canvas Container -->
   <div id="game-container">
     <canvas id="three-canvas"></canvas>
     <canvas id="blade-canvas"></canvas>
   </div>
 
-  <!-- Realtime AR Face Feed PIP in game HUD -->
-  <div id="ar-cam-pip" class="hidden">
-    <div class="pip-header">
-      <span class="pip-dot"></span>
-      <span class="pip-label">AR FACE TRACKER: ACTIVE</span>
-    </div>
-    <div class="pip-video-container">
-      <video id="pip-video" autoplay playsinline muted></video>
-      <div class="pip-face-bracket"></div>
-    </div>
+  <!-- Realtime Finger Tip Tracker Reticle (Follows your actual finger in air) -->
+  <div id="finger-reticle" class="hidden">
+    <div class="reticle-dot"></div>
+    <div class="reticle-pulse"></div>
+    <span class="reticle-label">🖐️ FINGER BLADE</span>
   </div>
 
   <!-- HUD Overlay -->
@@ -44,16 +45,27 @@
       </div>
     </div>
 
+    <!-- Hand Tracking Status & AR Controls Bar -->
+    <div id="tracking-status-bar">
+      <div class="status-badge" id="hand-status-badge">
+        <span class="pulse-indicator"></span>
+        <span id="hand-status-text">🖐️ HAND TRACKING: ACTIVE (SWIPE IN AIR)</span>
+      </div>
+      <button id="toggle-cam-bg-btn" class="mini-control-btn" title="Toggle Real-world AR Camera Background">
+        📷 AR BG: ON
+      </button>
+    </div>
+
     <!-- Active Fruit Type Badge -->
     <div id="fruit-type-badge" class="hidden">
       <span id="fruit-badge-icon">🍉</span>
       <span id="fruit-badge-name">WATERMELON</span>
     </div>
 
-    <!-- Look Around Instructions for Simulator -->
+    <!-- Instructions for AR Gestures -->
     <div id="controls-hint">
-      <span>🖱️ <b>Left Click & Drag:</b> Slice Blade</span>
-      <span>🔄 <b>Right Click & Drag / A-D Keys:</b> Look Around (360° AR)</span>
+      <span>🖐️ <b>Camera Air Swipe:</b> Wave & swipe your fingers in front of webcam!</span>
+      <span>🖱️ <b>Mouse / Touch:</b> Also active as manual backup</span>
     </div>
 
     <!-- Directional Warning Radar Alert -->
@@ -81,13 +93,13 @@
     <div id="score-popups"></div>
   </div>
 
-  <!-- AR Face Detection & Biometric Scanner Modal (Requirement: Must scan face before playing) -->
+  <!-- AR Face Detection & Biometric Scanner Modal (Scans player before play) -->
   <div id="face-scan-modal">
     <div class="scanner-card">
       <div class="scanner-header">
-        <div class="scanner-tag">AR BIOMETRIC RECOGNITION</div>
-        <h2>FACE SCAN REQUIRED</h2>
-        <p>Align your face within the biometric reticle to initialize the AR play arena.</p>
+        <div class="scanner-tag">AR/MR SPATIAL RECOGNITION</div>
+        <h2>AR FACE & HAND CALIBRATION</h2>
+        <p>Align your face to calibrate the camera, then use your <b>physical hand and fingers</b> to slice fruits in mid-air!</p>
       </div>
 
       <!-- Live Webcam / Scan Area -->
@@ -115,15 +127,15 @@
       <div class="scan-progress-bar-container">
         <div id="scan-progress-bar"></div>
       </div>
-      <div id="scan-percent">0% ANALYZED</div>
+      <div id="scan-percent">0% CALIBRATED</div>
 
       <!-- Action Buttons -->
       <div class="scanner-buttons">
-        <button id="start-cam-btn" class="glow-button">START CAMERA SCAN</button>
-        <button id="bypass-scan-btn" class="secondary-button">⚡ SIMULATE FACE DETECT</button>
+        <button id="start-cam-btn" class="glow-button">START WEBCAM & CALIBRATE</button>
+        <button id="bypass-scan-btn" class="secondary-button">⚡ QUICK START (AIR SWIPE READY)</button>
       </div>
       <div class="scanner-footnote">
-        💡 <b>AR/MR Mode:</b> In the Unity AR mobile app, this uses ARCore's front-facing ARFaceManager tracking.
+        🖐️ <b>True AR/MR Interaction:</b> Your fingers are tracked by the camera to slice fruits without touching the keyboard or mouse!
       </div>
     </div>
   </div>
@@ -138,12 +150,15 @@
         <div>BEST SCORE: <b id="best-score">0</b></div>
       </div>
       <button id="restart-btn" class="glow-button">PLAY AGAIN</button>
-      <button id="rescan-face-btn" class="secondary-button" style="margin-top: 10px;">RE-SCAN FACE</button>
+      <button id="rescan-face-btn" class="secondary-button" style="margin-top: 10px;">RE-CALIBRATE CAMERA</button>
       <div class="unity-note">
-        💡 <b>Unity AR Project Ready:</b> This game logic is mirrored in the C# Unity project files in this repository for ARCore Android APK export!
+        💡 <b>Unity AR Project Ready:</b> Hand gesture & ARCore tracking mirrored in C# for your college APK!
       </div>
     </div>
   </div>
+
+  <!-- Hidden offscreen video & processing canvas for native optical hand tracking -->
+  <canvas id="cv-motion-canvas" width="160" height="120" style="display:none;"></canvas>
 
   <script src="game.js"></script>
 </body>
