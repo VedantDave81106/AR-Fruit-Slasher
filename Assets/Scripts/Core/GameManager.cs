@@ -6,6 +6,7 @@ namespace ARFruitSlasher.Core
 {
     public enum GameState
     {
+        FaceScanning,
         Ready,
         Playing,
         GameOver
@@ -20,7 +21,7 @@ namespace ARFruitSlasher.Core
         [SerializeField] private float comboResetTime = 0.4f;
 
         [Header("State")]
-        private GameState currentState = GameState.Ready;
+        private GameState currentState = GameState.FaceScanning;
         private int currentScore = 0;
         private int highScore = 0;
         private int currentLives;
@@ -55,7 +56,16 @@ namespace ARFruitSlasher.Core
 
         private void Start()
         {
-            StartGame();
+            // If ARFaceScanManager exists, wait for face scan; otherwise start game
+            if (FindObjectOfType<AR.ARFaceScanManager>() == null)
+            {
+                StartGame();
+            }
+            else
+            {
+                currentState = GameState.FaceScanning;
+                OnStateChanged?.Invoke(currentState);
+            }
         }
 
         private void Update()

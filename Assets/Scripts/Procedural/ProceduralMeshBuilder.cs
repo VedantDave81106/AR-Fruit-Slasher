@@ -62,6 +62,69 @@ namespace ARFruitSlasher.Procedural
         }
 
         /// <summary>
+        /// Generates an Apple shaped mesh (slightly indented top/bottom)
+        /// </summary>
+        public static Mesh CreateAppleMesh(float radius = 0.25f, int latSegments = 18, int lonSegments = 18)
+        {
+            Mesh mesh = new Mesh { name = "Procedural_Apple" };
+
+            List<Vector3> vertices = new List<Vector3>();
+            List<Vector3> normals = new List<Vector3>();
+            List<Vector2> uvs = new List<Vector2>();
+            List<int> triangles = new List<int>();
+
+            for (int lat = 0; lat <= latSegments; lat++)
+            {
+                float t = (float)lat / latSegments;
+                float theta = t * Mathf.PI;
+                float sinTheta = Mathf.Sin(theta);
+                float cosTheta = Mathf.Cos(theta);
+
+                // Indentation at top (t near 0) and bottom (t near 1)
+                float indent = 1.0f;
+                if (t < 0.15f) indent = Mathf.Lerp(0.7f, 1.0f, t / 0.15f);
+                else if (t > 0.85f) indent = Mathf.Lerp(1.0f, 0.75f, (t - 0.85f) / 0.15f);
+
+                for (int lon = 0; lon <= lonSegments; lon++)
+                {
+                    float phi = lon * 2f * Mathf.PI / lonSegments;
+                    float sinPhi = Mathf.Sin(phi);
+                    float cosPhi = Mathf.Cos(phi);
+
+                    Vector3 normal = new Vector3(cosPhi * sinTheta, cosTheta, sinPhi * sinTheta);
+                    normals.Add(normal);
+                    Vector3 pos = new Vector3(normal.x * radius * indent, normal.y * radius * 1.08f, normal.z * radius * indent);
+                    vertices.Add(pos);
+                    uvs.Add(new Vector2((float)lon / lonSegments, t));
+                }
+            }
+
+            for (int lat = 0; lat < latSegments; lat++)
+            {
+                for (int lon = 0; lon < lonSegments; lon++)
+                {
+                    int first = (lat * (lonSegments + 1)) + lon;
+                    int second = first + lonSegments + 1;
+
+                    triangles.Add(first);
+                    triangles.Add(second);
+                    triangles.Add(first + 1);
+
+                    triangles.Add(second);
+                    triangles.Add(second + 1);
+                    triangles.Add(first + 1);
+                }
+            }
+
+            mesh.SetVertices(vertices);
+            mesh.SetNormals(normals);
+            mesh.SetUVs(0, uvs);
+            mesh.SetTriangles(triangles, 0);
+            mesh.RecalculateBounds();
+            return mesh;
+        }
+
+        /// <summary>
         /// Generates a sliced hemisphere with flat inner cap (leftSide = true for -X, false for +X)
         /// </summary>
         public static Mesh CreateHemisphereMesh(float radius = 0.25f, bool isLeftHalf = true, int latSegments = 16, int lonSegments = 16)
@@ -73,12 +136,8 @@ namespace ARFruitSlasher.Procedural
             List<Vector2> uvs = new List<Vector2>();
             List<int> triangles = new List<int>();
 
-            // Curved outer shell
             int halfLonSegments = lonSegments / 2;
             int startLon = isLeftHalf ? halfLonSegments : 0;
-            int endLon = isLeftHalf ? lonSegments : halfLonSegments;
-
-            List<Vector3> rimVertices = new List<Vector3>();
 
             for (int lat = 0; lat <= latSegments; lat++)
             {
@@ -97,12 +156,6 @@ namespace ARFruitSlasher.Procedural
                     normals.Add(normal);
                     vertices.Add(normal * radius);
                     uvs.Add(new Vector2((float)i / halfLonSegments, (float)lat / latSegments));
-
-                    // Keep track of rim vertices for cap
-                    if (i == 0 || i == halfLonSegments)
-                    {
-                        rimVertices.Add(normal * radius);
-                    }
                 }
             }
 
@@ -170,9 +223,33 @@ namespace ARFruitSlasher.Procedural
         }
 
         /// <summary>
+        /// Generates procedural texture for Watermelon Rind (green with dark wavy stripes)
+        /// </summary>
+        public static Texture2D CreateWatermelonTexture()
+        {
+            int w = 256, h = 128;
+            Texture2D tex = new Texture2D(w, h, TextureFormat.RGB24, false);
+            Color baseGreen = new Color(0.14f, 0.58f, 0.24f);
+            Color darkGreen = new Color(0.06f, 0.30f, 0.11f);
+
+            for (int y = 0; y < h; y++)
+            {
+                for (int x = 0; x < w; x++)
+                {
+                    float wave = Mathf.Sin((float)y / h * Mathf.PI * 8f + (float)x / 16f) * 6f;
+                    float stripe = Mathf.Sin(((x + wave) / (float)w) * Mathf.PI * 14f);
+                    Color c = stripe > 0.2f ? darkGreen : baseGreen;
+                    tex.SetPixel(x, y, c);
+                }
+            }
+            tex.Apply();
+            return tex;
+        }
+
+        /// <summary>
         /// Creates a simple material with solid color or standard shader
         /// </summary>
-        public static Material CreateColorMaterial(Color color, string name = "ProceduralMat", float smoothness = 0.5f)
+        public static Material CreateColorMaterial(Color color, string name = "ProceduralMat", float smoothness = 0.5f, Texture2D mainTex = null)
         {
             Shader shader = Shader.Find("Universal Render Pipeline/Lit");
             if (shader == null) shader = Shader.Find("Standard");
@@ -183,6 +260,11 @@ namespace ARFruitSlasher.Procedural
             mat.color = color;
             if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", color);
             if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", smoothness);
+            if (mainTex != null)
+            {
+                mat.mainTexture = mainTex;
+                if (mat.HasProperty("_BaseMap")) mat.SetTexture("_BaseMap", mainTex);
+            }
             return mat;
         }
     }

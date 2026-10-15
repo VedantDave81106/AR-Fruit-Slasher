@@ -294,6 +294,34 @@ namespace ARFruitSlasher.UI
             }
         }
 
+        public void ShowFruitBadge(string icon, string fruitName)
+        {
+            if (announcementText != null && GameManager.Instance != null && GameManager.Instance.CurrentState == GameState.Playing)
+            {
+                announcementText.text = $"{icon} {fruitName}";
+                if (announcementCoroutine != null) StopCoroutine(announcementCoroutine);
+                announcementCoroutine = StartCoroutine(AnimateFruitBadge(announcementText, 1.2f));
+            }
+        }
+
+        private IEnumerator AnimateFruitBadge(Text txt, float duration)
+        {
+            float elapsed = 0f;
+            Vector3 origScale = Vector3.one;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float progress = elapsed / duration;
+                float s = 1.0f + Mathf.Sin(progress * Mathf.PI) * 0.25f;
+                txt.transform.localScale = origScale * s;
+                yield return null;
+            }
+
+            txt.transform.localScale = origScale;
+            txt.text = "";
+        }
+
         public void OnRestartClicked()
         {
             if (GameManager.Instance != null)

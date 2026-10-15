@@ -8,6 +8,7 @@ namespace ARFruitSlasher.Spawner
     public class FruitTypeConfig
     {
         public string name = "Watermelon";
+        public string icon = "🍉";
         public ObjectType type = ObjectType.Watermelon;
         public int points = 10;
         public Color outerColor = new Color(0.1f, 0.6f, 0.15f); // Green rind

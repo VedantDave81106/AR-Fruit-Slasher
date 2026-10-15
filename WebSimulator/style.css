@@ -42,6 +42,83 @@ body, html {
   z-index: 10;
 }
 
+/* Picture-In-Picture AR Face Tracker PIP */
+#ar-cam-pip {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  width: 160px;
+  background: rgba(10, 15, 25, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(0, 242, 254, 0.4);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 242, 254, 0.25);
+  z-index: 25;
+  transition: opacity 0.3s;
+}
+
+.pip-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  background: rgba(0, 242, 254, 0.12);
+  border-bottom: 1px solid rgba(0, 242, 254, 0.2);
+}
+
+.pip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #00ff88;
+  box-shadow: 0 0 6px #00ff88;
+  animation: pulseDot 1s infinite alternate;
+}
+
+@keyframes pulseDot {
+  0% { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+
+.pip-label {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  color: #64ffda;
+}
+
+.pip-video-container {
+  position: relative;
+  width: 100%;
+  height: 110px;
+  background: #000;
+}
+
+#pip-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1); /* mirror */
+}
+
+.pip-face-bracket {
+  position: absolute;
+  top: 15%;
+  left: 20%;
+  width: 60%;
+  height: 70%;
+  border: 1.5px dashed #00f2fe;
+  border-radius: 6px;
+  pointer-events: none;
+  animation: bracketPulse 1.5s infinite alternate;
+}
+
+@keyframes bracketPulse {
+  0% { transform: scale(0.96); opacity: 0.6; }
+  100% { transform: scale(1.04); opacity: 1; }
+}
+
 /* HUD Overlay */
 #hud {
   position: absolute;
@@ -94,6 +171,31 @@ body, html {
 #tier-box .value {
   color: #ff9100;
   text-shadow: 0 0 10px rgba(255, 145, 0, 0.4);
+}
+
+/* Fruit Type Active Badge */
+#fruit-type-badge {
+  position: absolute;
+  top: 90px;
+  left: 24px;
+  background: rgba(12, 18, 28, 0.85);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 6px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+  animation: fadeInOut 2s ease-in-out;
+}
+
+#fruit-badge-icon {
+  font-size: 16px;
 }
 
 #controls-hint {
@@ -236,6 +338,224 @@ body, html {
   100% { transform: translate(-50%, -120px) scale(1); opacity: 0; }
 }
 
+/* ==========================================================================
+   AR Face Detection & Biometric Scanner Modal
+   ========================================================================== */
+#face-scan-modal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(5, 8, 14, 0.94);
+  backdrop-filter: blur(14px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 150;
+  transition: opacity 0.5s ease;
+}
+
+#face-scan-modal.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.scanner-card {
+  background: linear-gradient(150deg, #131926, #090d14);
+  border: 1px solid rgba(0, 242, 254, 0.35);
+  border-radius: 24px;
+  padding: 28px 36px;
+  text-align: center;
+  max-width: 480px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 242, 254, 0.2);
+}
+
+.scanner-header h2 {
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: #00f2fe;
+  text-shadow: 0 0 15px rgba(0, 242, 254, 0.5);
+  margin-top: 4px;
+}
+
+.scanner-header p {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+.scanner-tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: rgba(0, 242, 254, 0.15);
+  color: #64ffda;
+  border: 1px solid rgba(0, 242, 254, 0.3);
+}
+
+.scanner-viewport {
+  position: relative;
+  width: 260px;
+  height: 260px;
+  margin: 20px auto 16px auto;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid rgba(0, 242, 254, 0.5);
+  background: #020408;
+  box-shadow: 0 0 30px rgba(0, 242, 254, 0.3), inset 0 0 20px rgba(0,0,0,0.8);
+}
+
+#scanner-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+
+#scanner-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Biometric Reticle */
+.biometric-reticle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.reticle-ring.outer {
+  position: absolute;
+  top: 8%;
+  left: 8%;
+  width: 84%;
+  height: 84%;
+  border: 2px dashed rgba(0, 242, 254, 0.6);
+  border-radius: 50%;
+  animation: rotateClockwise 12s linear infinite;
+}
+
+.reticle-ring.inner {
+  position: absolute;
+  top: 18%;
+  left: 18%;
+  width: 64%;
+  height: 64%;
+  border: 1.5px dotted rgba(100, 255, 218, 0.8);
+  border-radius: 50%;
+  animation: rotateCounter 8s linear infinite;
+}
+
+@keyframes rotateClockwise {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes rotateCounter {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+.scan-laser-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #00f2fe, #fff, #00f2fe, transparent);
+  box-shadow: 0 0 12px #00f2fe;
+  animation: laserScan 2s ease-in-out infinite alternate;
+}
+
+@keyframes laserScan {
+  0% { top: 5%; opacity: 0.3; }
+  50% { opacity: 1; }
+  100% { top: 95%; opacity: 0.3; }
+}
+
+#scan-status-pill {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(10, 15, 24, 0.9);
+  border: 1px solid rgba(0, 242, 254, 0.5);
+  border-radius: 12px;
+  padding: 4px 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+#scan-status-pill .status-indicator {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ffaa00;
+  box-shadow: 0 0 6px #ffaa00;
+}
+
+#scan-status-text {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  color: #64ffda;
+}
+
+.scan-progress-bar-container {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+#scan-progress-bar {
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg, #00f2fe, #64ffda);
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.8);
+  transition: width 0.2s ease;
+}
+
+#scan-percent {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #64ffda;
+  margin-top: 6px;
+}
+
+.scanner-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.scanner-footnote {
+  margin-top: 16px;
+  font-size: 11px;
+  color: #64748b;
+  line-height: 1.4;
+}
+
 /* Game Over Modal */
 #game-over-modal {
   position: absolute;
@@ -299,7 +619,7 @@ body, html {
   border: none;
   border-radius: 12px;
   padding: 14px 34px;
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 800;
   color: #0b0c10;
   cursor: pointer;
@@ -309,8 +629,26 @@ body, html {
 }
 
 .glow-button:hover {
-  transform: scale(1.05);
+  transform: scale(1.03);
   box-shadow: 0 0 30px rgba(0, 242, 254, 0.8);
+}
+
+.secondary-button {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #cbd5e1;
+  cursor: pointer;
+  letter-spacing: 0.8px;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.secondary-button:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(0, 242, 254, 0.5);
 }
 
 .unity-note {

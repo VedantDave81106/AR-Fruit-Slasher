@@ -69,6 +69,7 @@ namespace ARFruitSlasher.Editor
             EnsureComponent<FruitSpawner>(managersRoot);
             EnsureComponent<ARPlacementManager>(managersRoot);
             EnsureComponent<ARWarningIndicator>(managersRoot);
+            EnsureComponent<ARFaceScanManager>(managersRoot);
 
             // UI Canvas
             Canvas canvas = Object.FindObjectOfType<Canvas>();

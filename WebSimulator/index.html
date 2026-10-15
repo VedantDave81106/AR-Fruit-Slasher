@@ -15,6 +15,18 @@
     <canvas id="blade-canvas"></canvas>
   </div>
 
+  <!-- Realtime AR Face Feed PIP in game HUD -->
+  <div id="ar-cam-pip" class="hidden">
+    <div class="pip-header">
+      <span class="pip-dot"></span>
+      <span class="pip-label">AR FACE TRACKER: ACTIVE</span>
+    </div>
+    <div class="pip-video-container">
+      <video id="pip-video" autoplay playsinline muted></video>
+      <div class="pip-face-bracket"></div>
+    </div>
+  </div>
+
   <!-- HUD Overlay -->
   <div id="hud">
     <div class="hud-top">
@@ -30,6 +42,12 @@
         <span class="label">LIVES</span>
         <span class="value" id="lives-display">❤️❤️❤️</span>
       </div>
+    </div>
+
+    <!-- Active Fruit Type Badge -->
+    <div id="fruit-type-badge" class="hidden">
+      <span id="fruit-badge-icon">🍉</span>
+      <span id="fruit-badge-name">WATERMELON</span>
     </div>
 
     <!-- Look Around Instructions for Simulator -->
@@ -63,6 +81,53 @@
     <div id="score-popups"></div>
   </div>
 
+  <!-- AR Face Detection & Biometric Scanner Modal (Requirement: Must scan face before playing) -->
+  <div id="face-scan-modal">
+    <div class="scanner-card">
+      <div class="scanner-header">
+        <div class="scanner-tag">AR BIOMETRIC RECOGNITION</div>
+        <h2>FACE SCAN REQUIRED</h2>
+        <p>Align your face within the biometric reticle to initialize the AR play arena.</p>
+      </div>
+
+      <!-- Live Webcam / Scan Area -->
+      <div class="scanner-viewport">
+        <video id="scanner-video" autoplay playsinline muted></video>
+        <canvas id="scanner-overlay"></canvas>
+        
+        <!-- Sci-Fi Biometric HUD Graphic -->
+        <div class="biometric-reticle">
+          <div class="reticle-ring outer"></div>
+          <div class="reticle-ring inner"></div>
+          <div class="reticle-corner top-left"></div>
+          <div class="reticle-corner top-right"></div>
+          <div class="reticle-corner bottom-left"></div>
+          <div class="reticle-corner bottom-right"></div>
+          <div class="scan-laser-line"></div>
+        </div>
+
+        <div id="scan-status-pill">
+          <span class="status-indicator"></span>
+          <span id="scan-status-text">INITIALIZING CAMERA...</span>
+        </div>
+      </div>
+
+      <div class="scan-progress-bar-container">
+        <div id="scan-progress-bar"></div>
+      </div>
+      <div id="scan-percent">0% ANALYZED</div>
+
+      <!-- Action Buttons -->
+      <div class="scanner-buttons">
+        <button id="start-cam-btn" class="glow-button">START CAMERA SCAN</button>
+        <button id="bypass-scan-btn" class="secondary-button">⚡ SIMULATE FACE DETECT</button>
+      </div>
+      <div class="scanner-footnote">
+        💡 <b>AR/MR Mode:</b> In the Unity AR mobile app, this uses ARCore's front-facing ARFaceManager tracking.
+      </div>
+    </div>
+  </div>
+
   <!-- Game Over Screen -->
   <div id="game-over-modal" class="hidden">
     <div class="modal-card">
@@ -73,6 +138,7 @@
         <div>BEST SCORE: <b id="best-score">0</b></div>
       </div>
       <button id="restart-btn" class="glow-button">PLAY AGAIN</button>
+      <button id="rescan-face-btn" class="secondary-button" style="margin-top: 10px;">RE-SCAN FACE</button>
       <div class="unity-note">
         💡 <b>Unity AR Project Ready:</b> This game logic is mirrored in the C# Unity project files in this repository for ARCore Android APK export!
       </div>
